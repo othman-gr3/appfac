@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variables (never push secrets)
+.env
+.env.local
+
+# Root db.json (contains admin UID — keep local)
+/db.json

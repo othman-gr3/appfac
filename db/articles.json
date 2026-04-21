@@ -1,0 +1,51 @@
+{
+  "articles": [
+    {
+      "id": "1",
+      "nom": "Laptop Dell Inspiron",
+      "description": "Ordinateur portable 15 pouces",
+      "prix_ht": 800,
+      "categorie_id": 1,
+      "tva_type": "informatique"
+    },
+    {
+      "id": "2",
+      "nom": "Souris Logitech",
+      "description": "Souris sans fil",
+      "prix_ht": 25,
+      "categorie_id": 1,
+      "tva_type": "informatique"
+    },
+    {
+      "id": "3",
+      "nom": "Formation React JS",
+      "description": "Formation de 3 jours",
+      "prix_ht": 1200,
+      "categorie_id": 3,
+      "tva_type": "formation"
+    },
+    {
+      "id": "4",
+      "nom": "Maintenance serveur",
+      "description": "Service de maintenance mensuel",
+      "prix_ht": 500,
+      "categorie_id": 2,
+      "tva_type": "services"
+    }
+  ],
+  "categories": [
+    {
+      "nom": "Informatiquejjj",
+      "id": "1"
+    },
+    {
+      "id": "2",
+      "nom": "Services"
+    },
+    {
+      "id": "3",
+      "nom": "Formation"
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}
