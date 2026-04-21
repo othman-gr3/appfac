@@ -10,26 +10,39 @@ import {
   ListItemIcon,
   ListItemText,
   Divider,
+  Avatar,
 } from "@mui/material";
 import {
-  Inventory2,
-  Category,
   Dashboard,
+  AddCircleOutlined,
+  ListAlt,
   Logout,
-  FactCheck,
+  People,
 } from "@mui/icons-material";
 import { useAuth } from "../contexts/AuthContext";
 
 const DRAWER_WIDTH = 240;
 
 const navItems = [
-  { text: "Dashboard", icon: <Dashboard fontSize="small" />, path: "/admin" },
-  { text: "Articles", icon: <Inventory2 fontSize="small" />, path: "/admin/articles" },
-  { text: "Catégories", icon: <Category fontSize="small" />, path: "/admin/categories" },
-  { text: "Validation", icon: <FactCheck fontSize="small" />, path: "/admin/validation" },
+  { text: "Dashboard", icon: <Dashboard fontSize="small" />, path: "/user" },
+  {
+    text: "Nouvelle facture",
+    icon: <AddCircleOutlined fontSize="small" />,
+    path: "/user/nouvelle-facture",
+  },
+  {
+    text: "Mes factures",
+    icon: <ListAlt fontSize="small" />,
+    path: "/user/factures",
+  },
+  {
+    text: "Clients",
+    icon: <People fontSize="small" />,
+    path: "/user/clients",
+  },
 ];
 
-const AdminLayout = () => {
+const UserLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout, currentUser } = useAuth();
@@ -38,6 +51,9 @@ const AdminLayout = () => {
     await logout();
     navigate("/login");
   };
+
+  // Show first letter of email as avatar
+  const avatarLetter = currentUser?.email?.[0]?.toUpperCase() ?? "U";
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "#F5F5F0" }}>
@@ -63,7 +79,7 @@ const AdminLayout = () => {
           sx={{
             px: 3,
             pt: 3,
-            pb: 8,
+            pb: 3,
             display: "flex",
             alignItems: "center",
           }}
@@ -72,12 +88,56 @@ const AdminLayout = () => {
             component="img"
             src={logo}
             alt="AppFac"
-            sx={{
-              width: 150,
-              height: "auto",
-              display: "block",
-            }}
+            sx={{ width: 150, height: "auto", display: "block" }}
           />
+        </Box>
+
+        {/* User info badge */}
+        <Box
+          sx={{
+            mx: 2,
+            mb: 2,
+            p: 1.5,
+            bgcolor: "rgba(245,245,240,0.05)",
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+          }}
+        >
+          <Avatar
+            sx={{
+              width: 30,
+              height: 30,
+              bgcolor: "#2D6A4F",
+              fontSize: 13,
+              fontWeight: 600,
+            }}
+          >
+            {avatarLetter}
+          </Avatar>
+          <Box sx={{ overflow: "hidden" }}>
+            <Typography
+              sx={{
+                fontSize: 11,
+                color: "rgba(245,245,240,0.4)",
+                lineHeight: 1.2,
+              }}
+            >
+              Connecté en tant que
+            </Typography>
+            <Typography
+              sx={{
+                fontSize: 12,
+                color: "#F5F5F0",
+                fontWeight: 500,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {currentUser?.email}
+            </Typography>
+          </Box>
         </Box>
 
         <Divider sx={{ borderColor: "rgba(245,245,240,0.08)" }} />
@@ -85,7 +145,12 @@ const AdminLayout = () => {
         {/* Nav links */}
         <List sx={{ pt: 1.5, px: 1, flexGrow: 1 }} disablePadding>
           {navItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            // Active if exact match or starts with path (for nested routes)
+            const isActive =
+              item.path === "/user"
+                ? location.pathname === "/user"
+                : location.pathname.startsWith(item.path);
+
             return (
               <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
                 <ListItemButton
@@ -126,28 +191,9 @@ const AdminLayout = () => {
           })}
         </List>
 
-        {/* User + Logout */}
+        {/* Logout */}
         <Box sx={{ px: 1, pb: 2 }}>
           <Divider sx={{ borderColor: "rgba(245,245,240,0.08)", mb: 1.5 }} />
-
-          {/* Email */}
-          <Box sx={{ px: 2, mb: 1 }}>
-            <Typography
-              variant="caption"
-              sx={{
-                color: "rgba(245,245,240,0.35)",
-                fontSize: 11,
-                display: "block",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {currentUser?.email}
-            </Typography>
-          </Box>
-
-          {/* Logout button */}
           <ListItemButton
             onClick={handleLogout}
             sx={{
@@ -188,4 +234,4 @@ const AdminLayout = () => {
   );
 };
 
-export default AdminLayout;
+export default UserLayout;

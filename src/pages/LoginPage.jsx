@@ -11,9 +11,11 @@ import {
   InputAdornment,
   IconButton,
   CircularProgress,
+  Divider,
 } from "@mui/material";
-import { Visibility, VisibilityOff, LockOutlined } from "@mui/icons-material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useAuth } from "../contexts/AuthContext";
+import logo from "../assets/logoLogin.png";
 
 const LoginPage = () => {
   const { login, userRole } = useAuth();
@@ -24,13 +26,12 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
   const [justLoggedIn, setJustLoggedIn] = useState(false);
 
   // Navigate once role is known after login
   useEffect(() => {
     if (justLoggedIn && userRole !== null) {
-      navigate("/admin");
+      navigate(userRole === "admin" ? "/admin" : "/user");
     }
   }, [justLoggedIn, userRole]);
 
@@ -38,10 +39,9 @@ const LoginPage = () => {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
       await login(email, password);
-      setJustLoggedIn(true); // wait for role to load, then useEffect navigates
+      setJustLoggedIn(true);
     } catch (err) {
       setError("Email ou mot de passe incorrect.");
       setLoading(false);
@@ -55,75 +55,74 @@ const LoginPage = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
+        bgcolor: "#F2F4E7",
       }}
     >
       <Card
         sx={{
           width: "100%",
-          maxWidth: 420,
-          borderRadius: 3,
-          boxShadow: "0 25px 50px rgba(0,0,0,0.5)",
-          background: "rgba(255,255,255,0.05)",
-          backdropFilter: "blur(20px)",
-          border: "1px solid rgba(255,255,255,0.1)",
+          maxWidth: 400,
+          bgcolor: "#F2F4E7",
+          border: "1px solid #E0E0D8",
+          borderRadius: "6px",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
         }}
       >
-        <CardContent sx={{ p: 4 }}>
-          {/* Logo / Icon */}
-          <Box sx={{ textAlign: "center", mb: 3 }}>
+        <CardContent sx={{ p: "40px 36px 36px" }}>
+          {/* Logo */}
+          <Box sx={{ mb: 6, display: "flex", flexDirection: "column", alignItems: "center" }}>
             <Box
-              sx={{
-                width: 64,
-                height: 64,
-                borderRadius: "50%",
-                background: "linear-gradient(135deg, #6c63ff, #3b82f6)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                margin: "0 auto 16px",
-                boxShadow: "0 8px 24px rgba(108,99,255,0.4)",
-              }}
-            >
-              <LockOutlined sx={{ color: "white", fontSize: 30 }} />
-            </Box>
-            <Typography
-              variant="h5"
-              fontWeight={700}
-              sx={{ color: "white", letterSpacing: 0.5 }}
-            >
-              AppFac
-            </Typography>
-            <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.5)", mt: 0.5 }}>
-              Gestion des factures
+              component="img"
+              src={logo}
+              alt="AppFac"
+              sx={{ width: 500, height: "auto", display: "block", mb: 1.5 }}
+            />
+            <Typography sx={{ fontSize: 12, color: "#6B6B6B", textAlign: "center", letterSpacing: "0.02em" }}>
+              Connectez-vous à votre espace administrateur
             </Typography>
           </Box>
 
-          {/* Error Alert */}
+          <Divider sx={{ borderColor: "#E0E0D8", mb: 3 }} />
+
+          {/* Error */}
           {error && (
-            <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
+            <Alert
+              severity="error"
+              sx={{ mb: 2.5, borderRadius: "4px", fontSize: 13 }}
+            >
               {error}
             </Alert>
           )}
 
           {/* Form */}
           <Box component="form" onSubmit={handleSubmit}>
+            <Typography
+              sx={{ fontSize: 11, fontWeight: 500, color: "#6B6B6B", mb: 0.75, textTransform: "uppercase", letterSpacing: "0.05em" }}
+            >
+              Email
+            </Typography>
             <TextField
               id="login-email"
-              label="Email"
               type="email"
               fullWidth
               required
+              size="small"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              sx={{ mb: 2, ...inputStyle }}
+              sx={{ mb: 2.5, ...inputStyle }}
             />
+
+            <Typography
+              sx={{ fontSize: 11, fontWeight: 500, color: "#6B6B6B", mb: 0.75, textTransform: "uppercase", letterSpacing: "0.05em" }}
+            >
+              Mot de passe
+            </Typography>
             <TextField
               id="login-password"
-              label="Mot de passe"
               type={showPassword ? "text" : "password"}
               fullWidth
               required
+              size="small"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               InputProps={{
@@ -132,15 +131,17 @@ const LoginPage = () => {
                     <IconButton
                       onClick={() => setShowPassword(!showPassword)}
                       edge="end"
-                      sx={{ color: "rgba(255,255,255,0.5)" }}
+                      size="small"
+                      sx={{ color: "#6B6B6B" }}
                     >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                      {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
                     </IconButton>
                   </InputAdornment>
                 ),
               }}
-              sx={{ mb: 3, ...inputStyle }}
+              sx={{ mb: 3.5, ...inputStyle }}
             />
+
             <Button
               id="login-submit"
               type="submit"
@@ -148,19 +149,23 @@ const LoginPage = () => {
               variant="contained"
               disabled={loading}
               sx={{
-                py: 1.5,
-                borderRadius: 2,
-                fontSize: "1rem",
-                fontWeight: 600,
-                background: "linear-gradient(135deg, #6c63ff, #3b82f6)",
-                boxShadow: "0 8px 24px rgba(108,99,255,0.35)",
+                py: 1.25,
+                borderRadius: "4px",
+                fontSize: 13,
+                fontWeight: 500,
+                bgcolor: "#2D6A4F",
+                boxShadow: "none",
+                textTransform: "none",
                 "&:hover": {
-                  background: "linear-gradient(135deg, #5a52d5, #2563eb)",
-                  boxShadow: "0 8px 24px rgba(108,99,255,0.5)",
+                  bgcolor: "#245a42",
+                  boxShadow: "none",
+                },
+                "&:disabled": {
+                  bgcolor: "#E0E0D8",
                 },
               }}
             >
-              {loading ? <CircularProgress size={24} color="inherit" /> : "Se connecter"}
+              {loading ? <CircularProgress size={18} color="inherit" /> : "Se connecter"}
             </Button>
           </Box>
         </CardContent>
@@ -169,16 +174,15 @@ const LoginPage = () => {
   );
 };
 
-// Shared input styling for dark glassmorphism background
+// Clean outlined input — light mode
 const inputStyle = {
   "& .MuiOutlinedInput-root": {
-    color: "white",
-    "& fieldset": { borderColor: "rgba(255,255,255,0.2)" },
-    "&:hover fieldset": { borderColor: "rgba(255,255,255,0.4)" },
-    "&.Mui-focused fieldset": { borderColor: "#6c63ff" },
+    borderRadius: "4px",
+    fontSize: 13,
+    "& fieldset": { borderColor: "#E0E0D8" },
+    "&:hover fieldset": { borderColor: "#1C1C1E" },
+    "&.Mui-focused fieldset": { borderColor: "#2D6A4F" },
   },
-  "& .MuiInputLabel-root": { color: "rgba(255,255,255,0.5)" },
-  "& .MuiInputLabel-root.Mui-focused": { color: "#6c63ff" },
 };
 
 export default LoginPage;

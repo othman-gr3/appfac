@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
 import {
   Box, Typography, Button, Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, IconButton, Dialog, DialogTitle,
-  DialogContent, DialogActions, TextField, Select, MenuItem,
-  FormControl, InputLabel, Chip, Alert, CircularProgress,
+  TableHead, TableRow, Paper, IconButton, TextField, Select, MenuItem,
+  FormControl, Chip, Alert, CircularProgress, Drawer,
 } from "@mui/material";
-import { Add, Edit, Delete } from "@mui/icons-material";
+import { Add, Edit, Delete, Close } from "@mui/icons-material";
 import {
   getArticles, createArticle, updateArticle, deleteArticle,
 } from "../services/jsonService";
@@ -20,19 +19,26 @@ const emptyForm = {
   tva_type: "",
 };
 
+// Shared label above inputs
+const FieldLabel = ({ children }) => (
+  <Typography sx={{ fontSize: 11, fontWeight: 500, color: "#6B6B6B", mb: 0.75, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+    {children}
+  </Typography>
+);
+
 const ArticlesPage = () => {
   const [articles, setArticles] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Dialog state
+  // Drawer state
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
 
-  // Delete confirm dialog
+  // Delete confirm
   const [deleteId, setDeleteId] = useState(null);
 
   const fetchData = async () => {
@@ -47,36 +53,16 @@ const ArticlesPage = () => {
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
-  const openAdd = () => {
-    setEditingId(null);
-    setForm(emptyForm);
-    setOpen(true);
-  };
-
+  const openAdd = () => { setEditingId(null); setForm(emptyForm); setOpen(true); };
   const openEdit = (article) => {
     setEditingId(article.id);
-    setForm({
-      nom: article.nom,
-      description: article.description,
-      prix_ht: article.prix_ht,
-      categorie_id: article.categorie_id,
-      tva_type: article.tva_type,
-    });
+    setForm({ nom: article.nom, description: article.description, prix_ht: article.prix_ht, categorie_id: article.categorie_id, tva_type: article.tva_type });
     setOpen(true);
   };
-
-  const handleClose = () => {
-    setOpen(false);
-    setError("");
-  };
-
-  const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
+  const handleClose = () => { setOpen(false); setError(""); };
+  const handleChange = (e) => setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
   const handleSave = async () => {
     if (!form.nom || !form.prix_ht || !form.categorie_id || !form.tva_type) {
@@ -86,11 +72,7 @@ const ArticlesPage = () => {
     setSaving(true);
     try {
       const data = { ...form, prix_ht: parseFloat(form.prix_ht) };
-      if (editingId) {
-        await updateArticle(editingId, data);
-      } else {
-        await createArticle(data);
-      }
+      if (editingId) { await updateArticle(editingId, data); } else { await createArticle(data); }
       await fetchData();
       handleClose();
     } catch {
@@ -112,61 +94,78 @@ const ArticlesPage = () => {
 
   const getCatNom = (id) => categories.find((c) => c.id === id)?.nom || "-";
 
-  if (loading) return <Box sx={{ display: "flex", justifyContent: "center", mt: 8 }}><CircularProgress /></Box>;
+  if (loading) return <Box sx={{ display: "flex", justifyContent: "center", mt: 8 }}><CircularProgress size={28} sx={{ color: "#2D6A4F" }} /></Box>;
 
   return (
     <Box>
       {/* Header */}
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-        <Typography variant="h5" fontWeight={700}>Articles</Typography>
+        <Typography sx={{ fontSize: 16, fontWeight: 600, color: "#1C1C1E" }}>Articles</Typography>
         <Button
           id="add-article-btn"
           variant="contained"
-          startIcon={<Add />}
+          startIcon={<Add fontSize="small" />}
           onClick={openAdd}
-          sx={{ borderRadius: 2, background: "linear-gradient(135deg, #6c63ff, #3b82f6)" }}
+          sx={{
+            bgcolor: "#2D6A4F", color: "#F5F5F0", borderRadius: "4px", fontSize: 13,
+            fontWeight: 500, textTransform: "none", boxShadow: "none",
+            "&:hover": { bgcolor: "#245a42", boxShadow: "none" },
+          }}
         >
           Ajouter un article
         </Button>
       </Box>
 
-      {error && !open && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {error && !open && <Alert severity="error" sx={{ mb: 2, borderRadius: "4px", fontSize: 13 }}>{error}</Alert>}
 
       {/* Table */}
-      <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}>
+      <TableContainer
+        component={Paper}
+        sx={{ bgcolor: "#FFFFFF", border: "1px solid #E0E0D8", borderRadius: "6px", boxShadow: "0 1px 3px rgba(0,0,0,0.08)" }}
+      >
         <Table>
-          <TableHead sx={{ bgcolor: "#f8f9fa" }}>
-            <TableRow>
-              <TableCell><strong>Nom</strong></TableCell>
-              <TableCell><strong>Description</strong></TableCell>
-              <TableCell><strong>Prix HT (DA)</strong></TableCell>
-              <TableCell><strong>TVA</strong></TableCell>
-              <TableCell><strong>Catégorie</strong></TableCell>
-              <TableCell align="center"><strong>Actions</strong></TableCell>
+          <TableHead>
+            <TableRow sx={{ bgcolor: "#FAFAF8" }}>
+              {["Nom", "Description", "Prix HT (DA)", "TVA", "Catégorie", "Actions"].map((h, i) => (
+                <TableCell
+                  key={h}
+                  align={i === 5 ? "center" : "left"}
+                  sx={{ fontSize: 11, fontWeight: 500, color: "#6B6B6B", textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: "1px solid #E0E0D8", py: 1.5 }}
+                >
+                  {h}
+                </TableCell>
+              ))}
             </TableRow>
           </TableHead>
           <TableBody>
             {articles.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} align="center" sx={{ py: 4, color: "text.secondary" }}>
+                <TableCell colSpan={6} align="center" sx={{ py: 5, fontSize: 13, color: "#6B6B6B" }}>
                   Aucun article trouvé
                 </TableCell>
               </TableRow>
             ) : (
               articles.map((article) => (
-                <TableRow key={article.id} hover>
-                  <TableCell>{article.nom}</TableCell>
-                  <TableCell sx={{ color: "text.secondary", fontSize: 13 }}>{article.description}</TableCell>
-                  <TableCell>{Number(article.prix_ht).toFixed(2)}</TableCell>
-                  <TableCell>
-                    <Chip label={TVA_LABELS[article.tva_type] || article.tva_type} size="small" variant="outlined" />
+                <TableRow
+                  key={article.id}
+                  sx={{ height: 48, "&:hover": { bgcolor: "#F5F5F0" }, "&:last-child td": { borderBottom: 0 } }}
+                >
+                  <TableCell sx={{ fontSize: 13, fontWeight: 500, color: "#1C1C1E", borderBottom: "1px solid #E0E0D8" }}>{article.nom}</TableCell>
+                  <TableCell sx={{ fontSize: 13, color: "#6B6B6B", borderBottom: "1px solid #E0E0D8" }}>{article.description || "-"}</TableCell>
+                  <TableCell sx={{ fontSize: 13, color: "#1C1C1E", borderBottom: "1px solid #E0E0D8" }}>{Number(article.prix_ht).toFixed(2)}</TableCell>
+                  <TableCell sx={{ borderBottom: "1px solid #E0E0D8" }}>
+                    <Chip
+                      label={TVA_LABELS[article.tva_type] || article.tva_type}
+                      size="small"
+                      sx={{ fontSize: 11, height: 22, borderRadius: "4px", bgcolor: "#F5F5F0", color: "#1C1C1E", border: "1px solid #E0E0D8", fontWeight: 500 }}
+                    />
                   </TableCell>
-                  <TableCell>{getCatNom(article.categorie_id)}</TableCell>
-                  <TableCell align="center">
-                    <IconButton id={`edit-article-${article.id}`} color="primary" onClick={() => openEdit(article)}>
+                  <TableCell sx={{ fontSize: 13, color: "#1C1C1E", borderBottom: "1px solid #E0E0D8" }}>{getCatNom(article.categorie_id)}</TableCell>
+                  <TableCell align="center" sx={{ borderBottom: "1px solid #E0E0D8" }}>
+                    <IconButton id={`edit-article-${article.id}`} size="small" onClick={() => openEdit(article)} sx={{ color: "#1C1C1E", mr: 0.5 }}>
                       <Edit fontSize="small" />
                     </IconButton>
-                    <IconButton id={`delete-article-${article.id}`} color="error" onClick={() => setDeleteId(article.id)}>
+                    <IconButton id={`delete-article-${article.id}`} size="small" onClick={() => setDeleteId(article.id)} sx={{ color: "#8B2E2E" }}>
                       <Delete fontSize="small" />
                     </IconButton>
                   </TableCell>
@@ -177,54 +176,103 @@ const ArticlesPage = () => {
         </Table>
       </TableContainer>
 
-      {/* Add/Edit Dialog */}
-      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle>{editingId ? "Modifier l'article" : "Ajouter un article"}</DialogTitle>
-        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, pt: 2 }}>
-          {error && <Alert severity="error">{error}</Alert>}
-          <TextField id="article-nom" name="nom" label="Nom *" value={form.nom} onChange={handleChange} fullWidth />
-          <TextField id="article-desc" name="description" label="Description" value={form.description} onChange={handleChange} fullWidth multiline rows={2} />
-          <TextField id="article-prix" name="prix_ht" label="Prix HT (DA) *" type="number" value={form.prix_ht} onChange={handleChange} fullWidth />
-          <FormControl fullWidth>
-            <InputLabel>Catégorie *</InputLabel>
-            <Select id="article-cat" name="categorie_id" value={form.categorie_id} onChange={handleChange} label="Catégorie *">
-              {categories.map((c) => (
-                <MenuItem key={c.id} value={c.id}>{c.nom}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <FormControl fullWidth>
-            <InputLabel>Type TVA *</InputLabel>
-            <Select id="article-tva" name="tva_type" value={form.tva_type} onChange={handleChange} label="Type TVA *">
-              {Object.entries(TVA_LABELS).map(([key, label]) => (
-                <MenuItem key={key} value={key}>{label}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={handleClose}>Annuler</Button>
-          <Button id="save-article-btn" variant="contained" onClick={handleSave} disabled={saving}>
-            {saving ? <CircularProgress size={20} /> : "Enregistrer"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* ── Add / Edit Drawer ── */}
+      <Drawer anchor="right" open={open} onClose={handleClose}
+        PaperProps={{ sx: { width: 420, bgcolor: "#FFFFFF", borderLeft: "1px solid #E0E0D8", p: 0 } }}
+      >
+        {/* Drawer header */}
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", px: 3, py: 2.5, borderBottom: "1px solid #E0E0D8" }}>
+          <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#1C1C1E" }}>
+            {editingId ? "Modifier l'article" : "Nouvel article"}
+          </Typography>
+          <IconButton onClick={handleClose} size="small" sx={{ color: "#6B6B6B" }}>
+            <Close fontSize="small" />
+          </IconButton>
+        </Box>
 
-      {/* Delete Confirm Dialog */}
-      <Dialog open={!!deleteId} onClose={() => setDeleteId(null)}>
-        <DialogTitle>Confirmer la suppression</DialogTitle>
-        <DialogContent>
-          <Typography>Voulez-vous vraiment supprimer cet article ?</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteId(null)}>Annuler</Button>
-          <Button id="confirm-delete-article" variant="contained" color="error" onClick={handleDelete}>
+        {/* Drawer body */}
+        <Box sx={{ p: 3, display: "flex", flexDirection: "column", gap: 2.5, overflowY: "auto", flexGrow: 1 }}>
+          {error && <Alert severity="error" sx={{ borderRadius: "4px", fontSize: 13 }}>{error}</Alert>}
+
+          <Box>
+            <FieldLabel>Nom *</FieldLabel>
+            <TextField id="article-nom" name="nom" value={form.nom} onChange={handleChange} fullWidth size="small" sx={inputStyle} />
+          </Box>
+          <Box>
+            <FieldLabel>Description</FieldLabel>
+            <TextField id="article-desc" name="description" value={form.description} onChange={handleChange} fullWidth size="small" multiline rows={2} sx={inputStyle} />
+          </Box>
+          <Box>
+            <FieldLabel>Prix HT (DA) *</FieldLabel>
+            <TextField id="article-prix" name="prix_ht" type="number" value={form.prix_ht} onChange={handleChange} fullWidth size="small" sx={inputStyle} />
+          </Box>
+          <Box>
+            <FieldLabel>Catégorie *</FieldLabel>
+            <FormControl fullWidth size="small">
+              <Select id="article-cat" name="categorie_id" value={form.categorie_id} onChange={handleChange} displayEmpty sx={{ borderRadius: "4px", fontSize: 13 }}>
+                <MenuItem value="" disabled><em style={{ color: "#6B6B6B", fontSize: 13 }}>Sélectionner…</em></MenuItem>
+                {categories.map((c) => <MenuItem key={c.id} value={c.id} sx={{ fontSize: 13 }}>{c.nom}</MenuItem>)}
+              </Select>
+            </FormControl>
+          </Box>
+          <Box>
+            <FieldLabel>Type TVA *</FieldLabel>
+            <FormControl fullWidth size="small">
+              <Select id="article-tva" name="tva_type" value={form.tva_type} onChange={handleChange} displayEmpty sx={{ borderRadius: "4px", fontSize: 13 }}>
+                <MenuItem value="" disabled><em style={{ color: "#6B6B6B", fontSize: 13 }}>Sélectionner…</em></MenuItem>
+                {Object.entries(TVA_LABELS).map(([key, label]) => <MenuItem key={key} value={key} sx={{ fontSize: 13 }}>{label}</MenuItem>)}
+              </Select>
+            </FormControl>
+          </Box>
+        </Box>
+
+        {/* Drawer footer */}
+        <Box sx={{ px: 3, py: 2.5, borderTop: "1px solid #E0E0D8", display: "flex", gap: 1.5, justifyContent: "flex-end" }}>
+          <Button onClick={handleClose} variant="outlined" sx={{ borderRadius: "4px", fontSize: 13, fontWeight: 500, textTransform: "none", borderColor: "#E0E0D8", color: "#1C1C1E", "&:hover": { borderColor: "#1C1C1E", bgcolor: "transparent" } }}>
+            Annuler
+          </Button>
+          <Button id="save-article-btn" variant="contained" onClick={handleSave} disabled={saving}
+            sx={{ borderRadius: "4px", fontSize: 13, fontWeight: 500, textTransform: "none", bgcolor: "#2D6A4F", boxShadow: "none", "&:hover": { bgcolor: "#245a42", boxShadow: "none" } }}
+          >
+            {saving ? <CircularProgress size={16} color="inherit" /> : "Enregistrer"}
+          </Button>
+        </Box>
+      </Drawer>
+
+      {/* ── Delete Confirm Drawer ── */}
+      <Drawer anchor="right" open={!!deleteId} onClose={() => setDeleteId(null)}
+        PaperProps={{ sx: { width: 360, bgcolor: "#FFFFFF", borderLeft: "1px solid #E0E0D8", p: 0 } }}
+      >
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", px: 3, py: 2.5, borderBottom: "1px solid #E0E0D8" }}>
+          <Typography sx={{ fontSize: 14, fontWeight: 600, color: "#1C1C1E" }}>Confirmer la suppression</Typography>
+          <IconButton onClick={() => setDeleteId(null)} size="small" sx={{ color: "#6B6B6B" }}><Close fontSize="small" /></IconButton>
+        </Box>
+        <Box sx={{ p: 3 }}>
+          <Typography sx={{ fontSize: 13, color: "#6B6B6B" }}>Voulez-vous vraiment supprimer cet article ? Cette action est irréversible.</Typography>
+        </Box>
+        <Box sx={{ px: 3, py: 2.5, borderTop: "1px solid #E0E0D8", display: "flex", gap: 1.5, justifyContent: "flex-end" }}>
+          <Button onClick={() => setDeleteId(null)} variant="outlined" sx={{ borderRadius: "4px", fontSize: 13, fontWeight: 500, textTransform: "none", borderColor: "#E0E0D8", color: "#1C1C1E", "&:hover": { borderColor: "#1C1C1E", bgcolor: "transparent" } }}>
+            Annuler
+          </Button>
+          <Button id="confirm-delete-article" variant="contained" onClick={handleDelete}
+            sx={{ borderRadius: "4px", fontSize: 13, fontWeight: 500, textTransform: "none", bgcolor: "#8B2E2E", boxShadow: "none", "&:hover": { bgcolor: "#7a2828", boxShadow: "none" } }}
+          >
             Supprimer
           </Button>
-        </DialogActions>
-      </Dialog>
+        </Box>
+      </Drawer>
     </Box>
   );
+};
+
+const inputStyle = {
+  "& .MuiOutlinedInput-root": {
+    borderRadius: "4px",
+    fontSize: 13,
+    "& fieldset": { borderColor: "#E0E0D8" },
+    "&:hover fieldset": { borderColor: "#1C1C1E" },
+    "&.Mui-focused fieldset": { borderColor: "#2D6A4F" },
+  },
 };
 
 export default ArticlesPage;

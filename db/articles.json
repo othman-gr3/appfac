@@ -9,12 +9,12 @@
       "tva_type": "informatique"
     },
     {
-      "id": "2",
       "nom": "Souris Logitech",
       "description": "Souris sans fil",
       "prix_ht": 25,
       "categorie_id": 1,
-      "tva_type": "informatique"
+      "tva_type": "informatique",
+      "id": "2"
     },
     {
       "id": "3",
@@ -35,7 +35,7 @@
   ],
   "categories": [
     {
-      "nom": "Informatiquejjj",
+      "nom": "Informatique",
       "id": "1"
     },
     {
