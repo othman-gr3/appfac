@@ -160,4 +160,4 @@ VIREMENT_TYPES: ["Virement bancaire", "Chèque", "Espèces"]
 | Member | Role |
 |--------|------|
 | Othmane | Admin side + Infrastructure |
-| Teammate | Client/User side |
+| hiba| Client/User side |
